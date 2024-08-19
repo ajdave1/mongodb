@@ -3,7 +3,7 @@ const bycrpt = require("bcryptjs");
 let routes = (app) => {
   app.post("/register", async (req, res) => {
     try {
-      const { username, fullname, occupation, age, password } = req.body;
+      const { username, fullname, occupation, age, password, email } = req.body;
       if (!occupation || !username || !age || !fullname || !password) {
         return res
           .status(400)
@@ -34,6 +34,7 @@ let routes = (app) => {
         age,
         occupation,
         password: passHash,
+        email,
       };
       let Userregistering = new users(newuser);
       await Userregistering.save();
@@ -41,6 +42,45 @@ let routes = (app) => {
     } catch (err) {
       console.log(err);
     }
+  });
+  app.post("/register-with-email", async (req, res) => {
+    console.log(req.param);
+    const { email, password } = req.body;
+    const User = await users.findOne({ email });
+    if (User) {
+      return res.status(400).json({ message: "user already exist" });
+    }
+    const creating = new users({ email, password });
+    await creating.save();
+    res.status(201).json({ message: "Account created successfully" });
+  });
+  app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Inputs can not be empty" });
+    }
+    const user = await users.findOne({ email });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "User does not exist" });
+    }
+    const upassword = await bycrpt.compare(password, user.password);
+    if (!upassword)
+      return res.status(400).json({
+        status: "fail",
+        message: "password incorrect",
+      });
+
+    res.status(200).json({
+      status: "success",
+      name: user.fullname,
+      username: user.username,
+      occupation: user.occupation,
+    });
   });
 };
 
