@@ -82,10 +82,14 @@ let routes = (app) => {
       occupation: user.occupation,
     });
   });
-  app.post("/logout", async (req, res) => {
-    const { username } = req.body;
-    await users.updateOne({ username, status: "inactive" });
-    res.status(200).json({ msg: `${username} logged out ` });
+  app.post("/logout/:id?", async (req, res) => {
+    try {
+      const userID = req.params.id;
+      await users.updateOne({ _id: userID }, { status: "inactive" });
+      res.status(200).json({ msg: ` logged out ` });
+    } catch (err) {
+      console.log(err);
+    }
   });
 
   app.delete("/delete", async (req, res) => {
