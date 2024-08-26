@@ -82,6 +82,26 @@ let routes = (app) => {
       occupation: user.occupation,
     });
   });
+  app.post("/logout", async (req, res) => {
+    const { username } = req.body;
+    await users.updateOne({ username, status: "inactive" });
+    res.status(200).json({ msg: `${username} logged out ` });
+  });
+
+  app.delete("/delete", async (req, res) => {
+    const { username } = req.body;
+    const user = await users.findOne({ username });
+    if (!user) {
+      return res.status(400).json({
+        msg: "user not fouond!",
+      });
+    }
+
+    await users.deleteOne(user);
+    res.status(205).json({
+      msg: "user deleted",
+    });
+  });
 };
 
 module.exports = routes;
